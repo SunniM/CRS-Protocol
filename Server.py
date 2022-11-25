@@ -1,13 +1,14 @@
 import socket
 import os
 import Services
+import multiprocessing
 
 SRVR_IP = '127.0.0.1'
 REND_PORT = 59001
 CTRL_PORT = 59002
 MSG_SIZE = 1000
 
-
+   
 def main():
     # Creating Controller/Renderer Sockets
     c_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -23,22 +24,57 @@ def main():
         print("Message Type: " + messageType)
         print("More Portions: " + morePortions)
         match messageType:
-            case '10':
+            case '10':          #File list
                 file_list = getFileList()
                 portions = portion(file_list)
                 for p in portions:
                     message = Services.build_Message('11',p[1],p[0])
                     c_sock.sendto(message.encode(), address)
-            case '20':
-                print()
-            case '30':
-                print()
-            case '32':
-                print()
-            case '34':
-                print()
-            case '99':
-                print()
+            
+            case '20':          #Render file    
+                pid = os.fork()
+                if(pid > 0):
+                    print()
+                else:
+                    f = open(data, "r")
+                    fileContents = f.read()
+                    portions = portion(fileContents)           
+                    for p in portions:
+                        message = Services.build_Message('21',p[1],p[0])
+                        r_sock.sendto(message.encode(), address)            #TO DO: what address?
+
+            case '30':          #Pause File
+                if(pid > 0):
+                    message = Services.build_Message('31','0','')
+                    r_sock.sendto(message.encode(),address)
+            
+            case '32':          #Resume File
+                if(pid > 0):
+                    message = Services.build_Message('33','0','')
+                    r_sock.sendto(message.encode(),address)
+            
+            case '34':          #restart File
+                children = multiprocessing.active_children()    #Terminating children in python is hard, this will terminate all children but there should only be one
+                for child in children:
+                    child.terminate()
+                
+                pid = os.fork()
+                if(pid > 0):    
+                    print()
+                else:           
+                    f = open(data, "r")
+                    fileContents = f.read()
+                    portions = portion(fileContents)           
+                    for p in portions:
+                        message = Services.build_Message('21',p[1],p[0])
+                        r_sock.sendto(message.encode(), address)            #TO DO: what address?
+
+            case '99':          #Exit
+                children = multiprocessing.active_children()    
+                for child in children:
+                    child.terminate()
+                
+                exit = True
 
         print("received message: %s" % data)
 
@@ -59,22 +95,6 @@ def portion(message):
     portionedMessage[len(portionedMessage)-1][1] = '0'
 
     return portionedMessage
-'''
-    counter = 0
-    if(messageLen > maxSize):
-        for i in range(messageLen):
-            if((i + maxSize) < messageLen):
-                portionedMessage[counter] = message[i:i+maxSize]
-            else:
-                portionedMessage[counter] = message[i:]
-                
-            i += maxSize
-            counter += 1
-    else:
-        portionedMessage[0] = message
-    
-    return portionedMessage
-'''
     
 
 if __name__ == '__main__':
