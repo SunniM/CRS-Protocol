@@ -2,7 +2,8 @@ import socket
 import os
 import Services
 
-SRVR_IP = '10.0.0.2'
+#SRVR_IP = '10.0.0.2'
+SRVR_IP = '127.0.0.1'
 REND_PORT = 59001
 CTRL_PORT = 59002
 MSG_SIZE = 1000
@@ -19,17 +20,19 @@ def main():
     exit = False
     while not exit:
         data, address = c_sock.recvfrom(MSG_SIZE)
-        messageType, morePortions, data = Services.parseMessage(data)
-        print("Message Type: " + messageType)
-        print("More Portions: " + morePortions)
+        messageType, morePortions, message = Services.parseMessage(data)
+        print('Message Type: ' + messageType)
+        print('More Portions: ' + morePortions)
         match messageType:
             case '10':
                 file_list = getFileList()
                 portions = portion(file_list)
                 for p in portions:
                     message = Services.build_Message('11',p[1],p[0])
-                    c_sock.sendto(message.encode(), address)
+                    c_sock.sendto(message, address)
             case '20':
+                if (os.fork() == 0):
+                    streamFile(message)
                 print()
             case '30':
                 print()
@@ -40,14 +43,19 @@ def main():
             case '99':
                 print()
 
-        print("received message: %s" % data)
+        print('received message: %s' % data)
 
 def getFileList():
     file_list = ','
-    for _, _, file in os.walk("./files"):
+    for _, _, file in os.walk('./files'):
         file_list = file_list.join(file)
     print(file_list)
     return file_list
+
+def streamFile(file_name):
+    with open(file_name) as file:
+        line = file.readlines()
+    os._exit()
 
 def portion(message):
     messageLen = len(message.encode())

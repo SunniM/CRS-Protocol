@@ -3,7 +3,7 @@ def parseMessage(message):
     yy = message[0:2]       #Message type
     q = message[2]          #Portion flag
     
-    payload = ""            #Data/payload
+    payload = ''            #Data/payload
     
     #If message type would have a payload
     '''if(yy == 11 or yy == 20 or yy == 21):
@@ -17,4 +17,4 @@ def parseMessage(message):
 
 def build_Message(yy, q, payload):
     message = yy + q + payload 
-    return message
+    return message.encode()
