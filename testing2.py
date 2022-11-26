@@ -6,9 +6,8 @@ def test():
     print("TESTING")
 
 def main():
-    print(len('300'.encode()))
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    sock.sendto("TESTING.py".encode(), ('127.0.0.1',59003))
+    sock.sendto("DONE".encode(), ('127.0.0.1',59003))
 
 
 if __name__ == '__main__':
