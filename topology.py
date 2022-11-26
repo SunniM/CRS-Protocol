@@ -6,7 +6,7 @@ from mininet.log import setLogLevel
 from mininet.topo import SingleSwitchTopp
 
 #Mininet topology with 3 hosts and 1 swtich
-def main()
+def main():
     setLogLevel('info')                 # Set log level to into to see more output
     sst = SingleSwitchTopology(k=3)     # Create topoloywith 3 hosts
     net = Mininet(sst)                  # Start network from topology

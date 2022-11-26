@@ -2,6 +2,7 @@ import socket
 import os
 import Services
 import multiprocessing
+from multiprocessing import Value
 
 SRVR_IP = '10.0.0.2'
 REND_PORT = 59001
@@ -18,6 +19,8 @@ def main():
     r_sock.bind((SRVR_IP, REND_PORT))
 
     exit = False
+    pause = Value('d', 0)
+
     while not exit:
         data, address = c_sock.recvfrom(MSG_SIZE)
         messageType, morePortions, data = Services.parseMessage(data)
@@ -40,23 +43,31 @@ def main():
                     fileContents = f.read()
                     portions = portion(fileContents)           
                     for p in portions:
-                        message = Services.build_Message('21',p[1],p[0])
-                        r_sock.sendto(message.encode(), address)            #TO DO: what address?
+                        if(pause == 0):
+                            message = Services.build_Message('21',p[1],p[0])
+                            r_sock.sendto(message.encode(), address)            #TO DO: what address?
+                
+                    children = multiprocessing.active_children()    #Should we terminate the child after it's done sending?
+                    for child in children:
+                        child.terminate()
 
             case '30':          #Pause File
                 if(pid > 0):
+                    pause.value = 1
                     message = Services.build_Message('31','0','')
                     r_sock.sendto(message.encode(),address)
             
             case '32':          #Resume File
                 if(pid > 0):
+                    pause.value = 0
                     message = Services.build_Message('33','0','')
                     r_sock.sendto(message.encode(),address)
             
             case '34':          #restart File
-                children = multiprocessing.active_children()    #Terminating children in python is hard, this will terminate all children but there should only be one
-                for child in children:
-                    child.terminate()
+                if(pid > 0):    
+                    children = multiprocessing.active_children()    #Terminating children in python is hard, this will terminate all children but there should only be one
+                    for child in children:
+                        child.terminate()
                 
                 pid = os.fork()
                 if(pid > 0):    
@@ -66,8 +77,14 @@ def main():
                     fileContents = f.read()
                     portions = portion(fileContents)           
                     for p in portions:
-                        message = Services.build_Message('21',p[1],p[0])
-                        r_sock.sendto(message.encode(), address)            #TO DO: what address?
+                        if(pause == 0):
+                            message = Services.build_Message('21',p[1],p[0])
+                            r_sock.sendto(message.encode(), address)            #TO DO: what address?
+                    
+                    children = multiprocessing.active_children()    #Should we terminate the child after it's done sending?
+                    for child in children:
+                        child.terminate()
+
 
             case '99':          #Exit
                 children = multiprocessing.active_children()    
