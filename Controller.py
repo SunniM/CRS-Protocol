@@ -37,8 +37,8 @@ def main():
         print('[{0}] EXIT'.format(len(files) + 1))
         print('Select a file: ')
 
-        fn = sys.stdin.fileno()
-        sys.stdin = os.fdopen(fn)
+        sys.stdin = os.fdopen(0)
+        
         x = int(input())
         if (x == (len(files) + 1)):
             exit = True
@@ -62,6 +62,7 @@ def main():
             messageType, _, message = Services.parseMessage(data)
             if(messageType == '23'):
                 rendering = False
+                sys.stdin.close()
                 p.terminate()
 
 def render_controls(sock, fn):
