@@ -4,7 +4,8 @@ import Services
 import multiprocessing
 from multiprocessing import Value
 
-SRVR_IP = '10.0.0.2'
+#SRVR_IP = '10.0.0.2'
+SRVR_IP = '127.0.0.1'
 REND_PORT = 59001
 CTRL_PORT = 59002
 MSG_SIZE = 1000
@@ -23,9 +24,9 @@ def main():
 
     while not exit:
         data, address = c_sock.recvfrom(MSG_SIZE)
-        messageType, morePortions, data = Services.parseMessage(data)
-        print("Message Type: " + messageType)
-        print("More Portions: " + morePortions)
+        messageType, morePortions, message = Services.parseMessage(data)
+        print('Message Type: ' + messageType)
+        print('More Portions: ' + morePortions)
         match messageType:
             case '10':          #File list
                 file_list = getFileList()
@@ -104,10 +105,15 @@ def main():
 
 def getFileList():
     file_list = ','
-    for _, _, file in os.walk("./files"):
+    for _, _, file in os.walk('./files'):
         file_list = file_list.join(file)
     print(file_list)
     return file_list
+
+def streamFile(file_name):
+    with open(file_name) as file:
+        line = file.readlines()
+    os._exit()
 
 def portion(message):
     messageLen = len(message.encode())
