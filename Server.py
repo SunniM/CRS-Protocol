@@ -33,7 +33,7 @@ def main():
                 portions = portion(file_list)
                 for p in portions:
                     message = Services.build_Message('11',p[1],p[0])
-                    c_sock.sendto(message.encode(), address)
+                    c_sock.sendto(message, address)
             
             case '20':          #Render file    
                 pid = os.fork()
@@ -49,7 +49,7 @@ def main():
 
                         if(pause == 0):         #Once pause is set to 0 the child escapes the loop and continues sending
                             message = Services.build_Message('21',p[1],p[0])
-                            r_sock.sendto(message.encode(), address)            #TO DO: what address?
+                            r_sock.sendto(message, address)            #TO DO: what address?
                 
                     children = multiprocessing.active_children()    #Should we terminate the child after it's done sending?
                     for child in children:
@@ -59,13 +59,13 @@ def main():
                 if(pid > 0):
                     pause.value = 1
                     message = Services.build_Message('31','0','')
-                    r_sock.sendto(message.encode(),address)
+                    r_sock.sendto(message,address)
             
             case '32':          #Resume File
                 if(pid > 0):
                     pause.value = 0
                     message = Services.build_Message('33','0','')
-                    r_sock.sendto(message.encode(),address)
+                    r_sock.sendto(message,address)
             
             case '34':          #restart File
                 if(pid > 0):    
@@ -87,7 +87,7 @@ def main():
 
                             if(pause == 0):         #Once pause is set to 0 the child escapes the loop and continues sending
                                 message = Services.build_Message('21',p[1],p[0])
-                                r_sock.sendto(message.encode(), address)            #TO DO: what address?
+                                r_sock.sendto(message, address)            #TO DO: what address?
                     
                     children = multiprocessing.active_children()    #Should we terminate the child after it's done sending?
                     for child in children:
@@ -98,7 +98,6 @@ def main():
                 children = multiprocessing.active_children()    
                 for child in children:
                     child.terminate()
-                
                 exit = True
 
         print("received message: %s" % data)
