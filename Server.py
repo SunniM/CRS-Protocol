@@ -43,7 +43,10 @@ def main():
                     fileContents = f.read()
                     portions = portion(fileContents)           
                     for p in portions:
-                        if(pause == 0):
+                        while(pause == 1):      #so if pause is set to true then the child is caught in this loop
+                            print()
+
+                        if(pause == 0):         #Once pause is set to 0 the child escapes the loop and continues sending
                             message = Services.build_Message('21',p[1],p[0])
                             r_sock.sendto(message.encode(), address)            #TO DO: what address?
                 
@@ -77,9 +80,13 @@ def main():
                     fileContents = f.read()
                     portions = portion(fileContents)           
                     for p in portions:
-                        if(pause == 0):
-                            message = Services.build_Message('21',p[1],p[0])
-                            r_sock.sendto(message.encode(), address)            #TO DO: what address?
+                        for p in portions:
+                            while(pause == 1):      #so if pause is set to true then the child is caught in this loop
+                                print() #don't know what goes here, but nothing i guess
+
+                            if(pause == 0):         #Once pause is set to 0 the child escapes the loop and continues sending
+                                message = Services.build_Message('21',p[1],p[0])
+                                r_sock.sendto(message.encode(), address)            #TO DO: what address?
                     
                     children = multiprocessing.active_children()    #Should we terminate the child after it's done sending?
                     for child in children:
