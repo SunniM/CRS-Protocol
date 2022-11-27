@@ -1,12 +1,18 @@
 import Services
 import socket
 import multiprocessing as mp
+import threading
 import time
+import os
+
+
 SRVR_IP = '10.0.0.1'
+#SRVR_IP = '127.0.0.1'
 SRVR_PORT = 59001
 SRVR_ADDR = (SRVR_IP, SRVR_PORT)
 
-REND_IP = '10.0.0.2'
+REND_IP = '10.0.0.1'
+#REND_IP = '127.0.0.1'
 C_REND_PORT = 59002
 C_REND_ADDR = (REND_IP, C_REND_PORT)
 
@@ -29,16 +35,12 @@ def main():
 
         data, address = c_sock.recvfrom(MSG_SIZE)
         messageType, morePortions, message = Services.parseMessage(data)
-        '''
-        print('Message Type: ' + messageType)
-        print('More Portions: ' + morePortions)
-        print('Received Message: ' + message)
-        '''
+        
         if messageType =='20':     # Request file to render
             message = Services.build_Message(messageType, morePortions, message)
             s_sock.sendto(message, SRVR_ADDR)
             global p
-            p = mp.Process(target=renderFile, args=(c_sock,s_sock, address))
+            p = threading.Thread(target=renderFile, args=(c_sock,s_sock, address))
             p.start()
             message = Services.build_Message('22', '0', '')
             c_sock.sendto(message, address)
@@ -47,24 +49,17 @@ def main():
             message = Services.build_Message(messageType, morePortions, message)
             s_sock.sendto(message, (SRVR_IP, SRVR_PORT))
 
-
         elif messageType =='32':     # Request resume
             message = Services.build_Message(messageType, morePortions, message)
             s_sock.sendto(message, (SRVR_IP, SRVR_PORT))
-
 
         elif messageType == '34':     # Request restart
             message = Services.build_Message(messageType, morePortions, message)
             s_sock.sendto(message, (SRVR_IP, SRVR_PORT))
 
         elif messageType =='99':
-            p.terminate()
+            os._exit(0)
             exit = True
-
-
-def empty_socket(s_sock):
-    while(s_sock.recvFrom(MSG_SIZE)):
-        pass
 
 def renderFile(c_sock, s_sock, c_address):
     while(True):
@@ -72,12 +67,10 @@ def renderFile(c_sock, s_sock, c_address):
         messageType, morePortions, message = Services.parseMessage(data)
         
         if messageType ==  '21' :
-            #print('Rendering')
             print(message, end='', flush=True)
             if(morePortions == '0'):
                 message = Services.build_Message('23', '0', '')
                 c_sock.sendto(message,c_address)
-
         elif messageType == '31' :
             print("Rendering Paused")
         elif messageType == '33' :

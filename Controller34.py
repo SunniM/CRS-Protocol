@@ -6,20 +6,18 @@ import threading
 mp.allow_connection_pickling()
 
 
-#print(file_list.split(','))
-
 SRVR_IP = '10.0.0.1'
+#SRVR_IP = '127.0.0.1'
 SRVR_PORT = 59001
 SRVR_ADDR = (SRVR_IP, SRVR_PORT)
 
 REND_IP = '10.0.0.2'
+#REND_IP = '127.0.0.1'
+
 REND_PORT = 59002
 REND_ADDR = (REND_IP, REND_PORT)
 
 MSG_SIZE = 500
-
-# ctrl > rend > serv
-# ctrl > serv
 
 def main():
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -54,13 +52,11 @@ def main():
             messageType, _, message = Services.parseMessage(data)
             if messageType == '22':
                 rendering = True
-                #newstdin = os.dup(sys.stdin.fileno())
                 global p
                 p = threading.Thread(target=render_controls, args=(sock,))
                 p.start()
 
         while(rendering):
-            print("TEST")
             data, _ = sock.recvfrom(MSG_SIZE)
             messageType, _, message = Services.parseMessage(data)
             if(messageType == '23'):
@@ -69,7 +65,6 @@ def main():
                 p.join()
 
 def render_controls(sock):
-    #sys.stdin = os.fdopen(newstdin)
     while(rendering):
         print("1. Pause \n2. Resume \n3. Restart")
         selection = input()
