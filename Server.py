@@ -70,7 +70,7 @@ def renderFile(data, address, pause):
     fileContents = f.read()
     portions = portion(fileContents)
     for p in portions:
-        #time.sleep(2)
+        time.sleep(2)
         while(pause.value == 1):      #so if pause is set to true then the child is caught in this loop
             pass
         if(pause.value == 0):         #Once pause is set to 0 the child escapes the loop and continues sending

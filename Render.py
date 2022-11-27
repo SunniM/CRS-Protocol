@@ -29,9 +29,11 @@ def main():
 
         data, address = c_sock.recvfrom(MSG_SIZE)
         messageType, morePortions, message = Services.parseMessage(data)
+        '''
         print('Message Type: ' + messageType)
         print('More Portions: ' + morePortions)
         print('Received Message: ' + message)
+        '''
         match(messageType):
             case('20'):     # Request file to render
                 message = Services.build_Message(messageType, morePortions, message)
@@ -71,13 +73,12 @@ def empty_socket(s_sock):
         pass
 
 def renderFile(c_sock, s_sock, c_address):
-    print('TEST')
     while(True):
         data, _ = s_sock.recvfrom(MSG_SIZE)
         messageType, morePortions, message = Services.parseMessage(data)
-
         match messageType:
             case '21' :
+                #print('Rendering')
                 print(message, end='', flush=True)
                 if(morePortions == '0'):
                     message = Services.build_Message('23', '0', '')

@@ -2,6 +2,7 @@ import socket
 import sys, os
 import Services
 import multiprocessing as mp
+import threading
 mp.allow_connection_pickling()
 
 
@@ -29,6 +30,7 @@ def main():
     if messageType == '11':
         files = message.split(',')
     
+    global rendering
     rendering = False
     exit = False
     while (not exit):
@@ -37,11 +39,12 @@ def main():
         print('[{0}] EXIT'.format(len(files) + 1))
         print('Select a file: ')
 
-        sys.stdin = os.fdopen(0)
-        
         x = int(input())
         if (x == (len(files) + 1)):
             exit = True
+            message = Services.build_Message('99', '0', '')
+            sock.sendto(message, REND_ADDR)
+            sock.sendto(message, SRVR_ADDR)
             break
         else:
             x = files[x-1]
@@ -51,9 +54,9 @@ def main():
             messageType, _, message = Services.parseMessage(data)
             if messageType == '22':
                 rendering = True
-                fn = sys.stdin.fileno()
+                #newstdin = os.dup(sys.stdin.fileno())
                 global p
-                p = mp.Process(target=render_controls, args=(sock,fn))
+                p = threading.Thread(target=render_controls, args=(sock,))
                 p.start()
 
         while(rendering):
@@ -62,26 +65,27 @@ def main():
             messageType, _, message = Services.parseMessage(data)
             if(messageType == '23'):
                 rendering = False
-                sys.stdin.close()
-                p.terminate()
+                print("Rendering Complete Press Enter")
+                p.join()
 
-def render_controls(sock, fn):
-    sys.stdin = os.fdopen(fn)
-    while(True):
+def render_controls(sock):
+    #sys.stdin = os.fdopen(newstdin)
+    while(rendering):
         print("1. Pause \n2. Resume \n3. Restart")
         selection = input()
-        match selection:
-            case '1' :
-                message = Services.build_Message('30','0','')
-                sock.sendto(message, REND_ADDR)
+        if rendering:
+            match selection:
+                case '1' :
+                    message = Services.build_Message('30','0','')
+                    sock.sendto(message, REND_ADDR)
 
-            case '2' :
-                message = Services.build_Message('32','0','')
-                sock.sendto(message, REND_ADDR)
+                case '2' :
+                    message = Services.build_Message('32','0','')
+                    sock.sendto(message, REND_ADDR)
 
-            case '3' :
-                message = Services.build_Message('34','0','')
-                sock.sendto(message, REND_ADDR)
+                case '3' :
+                    message = Services.build_Message('34','0','')
+                    sock.sendto(message, REND_ADDR)
 
 if __name__ == '__main__':
     main()
