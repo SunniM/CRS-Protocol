@@ -2,11 +2,15 @@ import Services
 import socket
 import multiprocessing as mp
 import time
-SRVR_IP = '127.0.0.1'
+#SRVR_IP = '127.0.0.1'
+SRVR_IP = '10.0.0.1'
+
 SRVR_PORT = 59001
 SRVR_ADDR = (SRVR_IP, SRVR_PORT)
 
-REND_IP = '127.0.0.1'
+#REND_IP = '127.0.0.1'
+REND_IP = '10.0.0.2'
+
 C_REND_PORT = 59002
 C_REND_ADDR = (REND_IP, C_REND_PORT)
 
