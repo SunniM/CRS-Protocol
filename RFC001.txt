@@ -1,6 +1,7 @@
 Request for Comments: 001                                    CS 4390.001
 
-                                                             Sunni Magan
+                                                          Jonathan Blade
+							     Sunni Magan
                                    TODO: add names in alphabetical order
 
                                                           Novemeber 2022
