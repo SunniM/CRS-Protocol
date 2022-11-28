@@ -6,13 +6,13 @@ import threading
 mp.allow_connection_pickling()
 
 
-SRVR_IP = '10.0.0.1'
-#SRVR_IP = '127.0.0.1'
+#SRVR_IP = '10.0.0.1'
+SRVR_IP = '127.0.0.1'
 SRVR_PORT = 59001
 SRVR_ADDR = (SRVR_IP, SRVR_PORT)
 
-REND_IP = '10.0.0.2'
-#REND_IP = '127.0.0.1'
+#REND_IP = '10.0.0.2'
+REND_IP = '127.0.0.1'
 
 REND_PORT = 59002
 REND_ADDR = (REND_IP, REND_PORT)
@@ -44,6 +44,8 @@ def main():
             sock.sendto(message, REND_ADDR)
             sock.sendto(message, SRVR_ADDR)
             break
+        # else if x  > len(files)
+        #    print(INvaLid sEleCtIon)
         else:
             x = files[x-1]
             message = Services.build_Message('20', '0', x)
@@ -77,7 +79,7 @@ def render_controls(sock):
                     message = Services.build_Message('32','0','')
                     sock.sendto(message, REND_ADDR)
 
-            elif selection =='3':
+            elif selection == '3':
                 message = Services.build_Message('34','0','')
                 sock.sendto(message, REND_ADDR)
 

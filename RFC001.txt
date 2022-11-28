@@ -1,9 +1,11 @@
-Request for Comments: 001                                    CS 4390.001
+Request for Comments: 001                                   CS 4390.001
 
-                                                             Sunni Magan
-                                   TODO: add names in alphabetical order
+                                                         Jonathan Blade
+                                                             Micah Katz
+                                                            Sunni Magan
+                                                            Armin Ziaei
 
-                                                          Novemeber 2022
+                                                          November 2022
 
 
                Controller Renderer Server Protocol -- CRSP
@@ -11,40 +13,15 @@ Request for Comments: 001                                    CS 4390.001
 Abstract
 
   The Controller Render Server Protocol (CRSP) is an application-level
-  protocol to provide a media consumption service to users.
+  protocol to provide a media consumption service to users. CRSP is a
+  communication protocol which defines a communication standard for a
+  tri-entity file rendering system. The Controller, Renderer, and Server
+  entities communicate by a series of request/response messages in order
+  to render a file.
 
 1 Introduction
 
-  1.1 Terminology
-  
-    This specification uses a number of terms to refer to the roles
-    played by participants in, and objects of, the CRSP communication
-  
-    controller (C)
-
-
-    render (R)
-
-
-    Server (S)
-
-    
-    connection
-        A transport layer virtual circuit established between two
-		programs for the purpose of communication.
-
-    message
-      The basic unit of HTTP communication, consisting of a structured
-      sequence of octets matching the syntax defined in section 4 and
-      transmitted via the connection.
-
-    request
-      An CRSP request message.
-
-    response
-      An CSRP response message.
-
-  1.2 Requirements
+  1.1 Requirements
 
     The key words "MUST", "MUST NOT", "REQUIRED", "SHALL",
     "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and
@@ -60,7 +37,56 @@ Abstract
     SHOULD level requirements for its protocols is said to be 
     "conditionally compliant."
 
-  1.2  Purpose
+  1.2 Terminology
+  
+    This specification uses a number of terms to refer to the roles
+    played by participants in, and objects of, the CRSP communication
+
+    network entity
+      A host participating in the CRSP communication. There are three
+      network entities for a single CRSP communication. The entities
+      are: the Controller, the Render, and the Server
+
+    Controller (C)
+      The controller is one the three network entities acting within
+      the CRSP communication. It is the only entity controlled by a
+      user. Its main role is to providing rendering controls to the
+      user. C SHALL request a list of media files from S. C SHALL
+      request the file to be rendered by R.
+
+    Renderer (R)
+      The renderer is one of the three network entities acting within
+      the CRSP communication. It's main role is to render the files
+      requested by the user. R SHOULD NOT have the capability to
+      buffer. It MUST render what it receives from S
+
+    Server (S)
+      The server is one of the three network entities acting within
+      the CRSP communication. It's main role is to provide a list of
+      files to the controller and send the requested file to the
+      renderer.
+
+    message
+      The basic unit of CRSP communication, consisting of a structured
+      sequence of message type codes matching the syntax defined in
+      section 2 and transmitted via UDP datagrams.
+
+    portion
+      When a message exceeds its maximum size, it is broken up into
+      multiple portions. The end of a message is indicated in the
+      message header.
+      
+    connection
+      CRSP uses UDP datagrams to send messages to known addresses of
+      each entity.
+
+    request
+      A CRSP request message.
+
+    response
+      A CSRP response message.
+
+  1.3  Purpose
 
     The purpose of the protocol is to allow C to request a list of
     media files (e.g. text or video file) from S, then C can request a
@@ -70,8 +96,107 @@ Abstract
     not have the capability to buffer so it just renders what it
     receives from S. During the streaming session, C can request R to
     pause/resume/start-from-the-beginning the streaming. 
+  
+  1.4 Overall Operation
 
-  1.3 Limitations
+    The CRSP protocol is a request/response protocol. A network entity
+    sends a request message to another entity. Once the receiving entity
+    acknowledges this request, it sends a response message back
+    to the requesting entity. Whether a message is considered a request
+    or a response is determined by the message header.
+    
+    Most CRSP communication is initiated by C. The only communication
+    between C and S are for file list information and system
+    information. All rendering controls requested by C MUST be sent to
+    R. R MUST then relay the requested control to S.
+    
+    The IP address of C can vary, however, S and R both need static IP
+    addresses. This is because CRSP uses UDP datagrams to deliver
+    messages.
+    
+    CRSP uses a series of port numbers for communication among
+    entities. The default listening port of S is 59001. Because the
+    render is communicating between C and S, it has two default
+    listening ports: 59002 for S and 59003 for C. The port numbers
+    used by S and R should also be known by all three entities. The
+    port number used by C can be dynamically allocated.
 
-    R shall not have th
+2 Message Header
+  Each request and response message is preceded by three characters 
+  which are used to relay information about the message to the 
+  recipient. The header format is as follows:
 
+      YY|Q|(Message Payload)
+
+  2.1 YY Value
+    The first two characters of the header indicate the message type 
+    code. The YY provides information on the type of message as well 
+    as the contents of the payload, if any. The first character in the 
+    YY value indicates the category of request or response. 
+    These categories include: 
+      
+      - 1x: File list information
+
+      - 2x: File rendering information
+
+      - 3x: User controls
+
+      - 9x: System information
+
+    2.1.1 1x - File List Information
+      This category of YY values are associated with requesting and 
+      responding information on the file list. 
+
+      - 10: Request file list, no payload.
+
+      - 11: Respond file list, payload will contain the file list.
+
+    2.1.2 2x - File Rendering Information
+      This category of YY values are associated with requests and 
+      responses concerning the rendering of files.
+
+      - 20: Request file to be rendered, payload will contain name the
+              of the file. 
+
+      - 21: Respond file contents, payload will contain a portion of 
+              the file.
+
+      - 22: Rendering has begun, payload will be empty.
+
+      - 23: Rendering has ended, payload will be empty.
+
+    2.1.3 3x - User Controls 
+      This category of YY corresponds to requests by the user to 
+      control the file rendering and their respective responses.
+
+      - 30: Request Pause, payload will be empty.
+
+      - 31: Pause Request Acknowledged, payload will be empty.  
+
+      - 32: Request Resume, payload will be empty.
+
+      - 33: Resume Request Acknowledged, payload will be empty. 
+
+      - 34: Request Restart, payload will be empty. 
+
+      - 35: Restart Request Acknowledged, payload will be empty. 
+
+    2.1.4 9x - System Information 
+      This category of YY values is used to send information concerning
+      the execution of the application itself.
+
+      - 99: Exit, payload will be empty. 
+
+  2.2 Q Value
+    The Q value is used to indicate whether a given message contains 
+    the final portion of the message or if there are more portions 
+    to come. The possible Q values are as follows.
+
+    - 0: No further portions, this is the final portion of the message.
+
+    - 1: Expect additional portions, this message is incomplete. 
+
+3 References
+
+  [1] Bradner, S., "Key words for use in RFCs to Indicate Requirement 
+      Levels", RFC 2119, March 1997.  
