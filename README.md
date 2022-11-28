@@ -1,10 +1,12 @@
 # TODO
- 1. Add names to RFC
+ 1. ~~Add names to RFC~~
  2. ~~Design protocol operation (message types/message codes)~~
  3. ~~Choose implementation language~~
  4. ~~Setup mininet network architecture~~
- 5. Build Application
- 6. 
+ 5. ~~Build Application~~
+ 6. ~~Complete RFC~~
+ 7. Add code documentation
+
 # RFC formatting rules
 ## General
  1. ASCII, 72 char/line.  
