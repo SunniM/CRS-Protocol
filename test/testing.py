@@ -2,8 +2,9 @@ import multiprocessing as mp
 import time
 import socket
 def test():
-    f = open('test.txt', 'w')
-    print("TESTING")
+    f = open('test.txt', 'r')
+    print(f.readlines())
+    f.close()
 
 def main():
     print(len('300'.encode()))
@@ -12,5 +13,5 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    test()
 
