@@ -100,7 +100,8 @@ def renderFile(filename, pause, address):
 
     portions = portion(fileContents)    # Portions message in case payload does not if in message
     for p in portions:
-        time.sleep(2)
+        # Delays the time between messages to allow the user to access rendering controls
+        time.sleep(.5)
         while(pause.value == 1):        # Pause is enabled, will NOT send messages to RENDERER
             pass
         if(pause.value == 0):           # Pause is disabled, will begin sending messages to RENDER
