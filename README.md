@@ -15,4 +15,4 @@
  4. No “filling” or (added) hyphenation across a line.  
  5. <.><sp><sp> between sentences.  
  6. No footnotes.
- 7. Referenecs in the form[1].
+ 7. References in the form[1].

@@ -6,9 +6,8 @@ import socket
 import time
 
 
-# Static IP and Port of SERVER and RENDERER
+# Static IP and Port of SERVER
 SRVR_ADDR = ('10.0.0.1', 59001)
-REND_ADDR = ('10.0.0.2', 59002)
 
 # Maximum Message Size
 MSG_SIZE = 500
@@ -50,7 +49,7 @@ def start():
 
                 lastRequestedFile = message # Stores file name in case a restart is requested
                 global proc # Child thread is created to send file contents to RENDERER
-                proc = mp.Process(target=renderFile, args=(message, pause))
+                proc = mp.Process(target=renderFile, args=(message, pause, address))
                 proc.start()
 
         elif messageType == '30':   # Pause File request
@@ -72,7 +71,7 @@ def start():
             sock.sendto(message,address)
 
             # New rendering process is created
-            proc = mp.Process(target=renderFile, args=(lastRequestedFile, pause))
+            proc = mp.Process(target=renderFile, args=(lastRequestedFile, pause, address))
             proc.start()
 
         elif messageType ==  '99':  # Exit Command
@@ -80,7 +79,7 @@ def start():
             exit = True
 
 
-def renderFile(filename, pause):
+def renderFile(filename, pause, address):
     """
     Begins sending file conent of requested file.
 
@@ -90,6 +89,7 @@ def renderFile(filename, pause):
     args:
         filename : socket obj used to send messages to CONTROLLER
         pause : multiprocessing Value object used to indicate pause/unpause
+        address : (str, int) tuple containing IP/PORT of RENDERER
     """
     # Creates new socket to communicate with RENDERER
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -105,8 +105,8 @@ def renderFile(filename, pause):
             pass
         if(pause.value == 0):           # Pause is disabled, will begin sending messages to RENDER
             # Sends file contents to RENDERER
-            message = Services.build_Message('21',p[1],p[0])
-            sock.sendto(message, REND_ADDR)
+            message = Services.build_Message('21', p[1], p[0])
+            sock.sendto(message, address)
 
 def getFileList():
     """
